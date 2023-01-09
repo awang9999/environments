@@ -21,19 +21,61 @@ Help()
 }
 
 ########################
+# Prompt Y/n           #
+########################
+confirm()
+{
+    local _prompt _default _response
+
+    if [ "$1" ];
+    then
+	_prompt="$1 (Y/n)";
+    else
+	_prompt="Are you sure? (Y/n)";
+    fi
+
+    # Loop forever until the user enters valid response (Y/N or Yes/No)
+
+    while true; do
+	read -r -p "$_prompt " _response
+	case "$_response" in
+	    [Yy][Ee][Ss]|[Yy]) #Yes or Y (case insensitive).
+		return 0
+		;;
+	    [Nn][Oo]|[Nn]) # No or N
+		return 1
+		;;
+	    "")
+		return 0
+		;;
+	    *) # Anything else (including blank is invalid.
+		;;
+	esac
+    done
+}
+
+########################
 # Run Without Prompt   #
 ########################
 RunWithoutPrompt()
 {
-    echo "with prompt"
+    echo "no prompt"
 }
 
 ########################
 # Run With Prompt      #
 ########################
 RunWithPrompt()
-{
-    echo "no prompt"
+{   
+    if confirm "Do you want to install gnome-tweaks?";
+    then
+	/bin/bash ./configure_tweaks.sh;
+    fi
+
+    if confirm "Do you want to install Nordic theme?";
+    then
+	/bin/bash ./configure_theme.sh;
+    fi
 }
 
 ########################
@@ -58,9 +100,11 @@ done
 
 if [ $OPTIND -eq 1 ];
 then
-    echo "Running interactive configuration script";
+    echo "Running interactive GNOME configuration script";
     RunWithPrompt
 fi
+
+echo "GNOME Configuration Done!";
        
 
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Installing Nordic Theme"
+
 # Create .themes directory in home
 mkdir ~/.themes
 
