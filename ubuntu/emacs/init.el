@@ -33,7 +33,9 @@
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-(global-display-line-numbers-mode 1)
+
+;; Turn on line numbers for programming modes
+(add-hook 'prog-mode-hook 'linum-mode)
 
 ;; Load my favorite theme
 (use-package doom-themes

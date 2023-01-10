@@ -59,7 +59,8 @@ confirm()
 ########################
 RunWithoutPrompt()
 {
-    echo "no prompt"
+    /bin/bash ./configure_tweaks.sh;
+    /bin/bash ./configure_theme.sh;
 }
 
 ########################
@@ -75,6 +76,11 @@ RunWithPrompt()
     if confirm "Do you want to install Nordic theme?";
     then
 	/bin/bash ./configure_theme.sh;
+    fi
+
+    if confirm "Do you want to configure dock and desktop?";
+    then
+	/bin/bash ./configure_dock.sh;
     fi
 }
 
