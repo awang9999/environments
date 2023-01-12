@@ -13,7 +13,7 @@
 Help()
 {
     # Display help
-    echo "Syntax: ./configure [-a|None]"
+    echo "Syntax: ./configure.sh [-a|None]"
     echo "Options:"
     echo "-a       Run all subconfiguration files without Y/N prompt for each one."
     echo "-h       Print this Help."
@@ -61,6 +61,7 @@ RunWithoutPrompt()
 {
     /bin/bash ./configure_tweaks.sh;
     /bin/bash ./configure_theme.sh;
+    /bin/bash ./configure_dock.sh;
 }
 
 ########################
