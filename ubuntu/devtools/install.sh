@@ -54,6 +54,12 @@ RunWithoutPrompt()
 {
     sudo apt-get -y install cmake;
     sudo apt-get -y install libtool;
+
+	sudo mkdir ./tmp;
+		sudo wget -c https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz -P ./tmp/;
+	sudo zcat ./tmp/install-tl-unx.tar.gz | tar xf -;
+	sudo perl ./install-tl-*/install-tl --no-interaction;
+	echo "Don't forget to prepend '/usr/local/texlive/YYYY/bin/PLATFORM' to your PATH!";
 }
 
 RunWithPrompt()
@@ -67,6 +73,15 @@ RunWithPrompt()
     then
         sudo apt-get -y install libtool;
     fi
+
+	if confirm "Do you want to install TeX Live?";
+	then
+	    mkdir ./tmp;
+		sudo wget -c https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz -P ./tmp/;
+		sudo zcat ./tmp/install-tl-unx.tar.gz | tar xf -;
+		sudo perl ./install-tl-*/install-tl --no-interaction;
+		echo "Don't forget to prepend '/usr/local/texlive/YYYY/bin/PLATFORM' to your PATH!";
+	fi
 }
 
 

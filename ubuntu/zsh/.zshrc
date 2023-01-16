@@ -252,3 +252,8 @@ up ()
  POINTER=$'%F{blue}\u27A4%f %F{white}'
  VENV=$''
  PROMPT="(${TIME})-(${USERANDMACHINE})-(${CURDIR})${NEWLINE}${POINTER}"
+
+# Prepend texlive to path
+path=('/usr/local/texlive/2022/bin/x86_64-linux' $path)
+# export to sub-processes (make it inherited by child processes)
+export PATH
