@@ -53,7 +53,7 @@ confirm()
 RunWithoutPrompt()
 {
     sudo apt-get -y install cmake;
-    sudo apt-get -y install libtool;
+    sudo apt-get -y install libtool-bin;
 
 	sudo mkdir ./tmp;
 		sudo wget -c https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz -P ./tmp/;
@@ -71,7 +71,7 @@ RunWithPrompt()
 
     if confirm "Do you want to install libtool?";
     then
-        sudo apt-get -y install libtool;
+        sudo apt-get -y install libtool-bin;
     fi
 
 	if confirm "Do you want to install TeX Live?";

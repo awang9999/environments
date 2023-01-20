@@ -29,6 +29,8 @@
 (unless (package-installed-p package) (package-install package)))
 #+END_SRC
 
+#+RESULTS:
+
 ** Environment Setup
    Emacs fails to properly load environment variables in some operating systems so we can install ~exec-path-from-shell~ to fix that.
 
@@ -37,6 +39,9 @@
         :ensure t)
     (exec-path-from-shell-initialize)
   #+END_SRC
+
+  #+RESULTS:
+  : ((MANPATH . ) (PATH . /usr/local/texlive/2022/bin/x86_64-linux:/usr/local/texlive/2022/bin/x86_64-linux:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin))
 
 ** Basic Setup
    This section contains several basic settings within emacs such as loading the language, disabling the toolbar, and setting up the autosave directory etc.
@@ -89,10 +94,10 @@
 
   ;; Turn on line numbers for programming modes
   (add-hook 'prog-mode-hook 'linum-mode)
-  (setq linum-format " %d")
+  (setq linum-format " %d") 
 
   ;; Set font
-  (set-face-attribute 'default nil :font "Ubuntu Mono" :height 140)
+  (set-face-attribute 'default nil :font "Ubuntu Mono" :height 160)
 
   ;; Set tab-width to 4
   (setq-default tab-width 4)
@@ -109,6 +114,10 @@
   ;; Turn on tab-bar-mode for and configure it
   (add-hook 'prog-mode-hook 'tab-bar-mode)
 #+END_SRC
+
+#+RESULTS:
+| yas-minor-mode | tab-bar-mode | linum-mode |
+
 * Visual Elements
 ** Theme
    I will try to stick to using the Nord colour scheme everywhere appropriate in Zemacs. The *doom-themes* package offers an easy solution to applying the Nord theme in Emacs. Additionally, *heaven-and-hell* provides us a function to toggle between two themes using a shortcut key. I will assign ~F6~ key to toggle between the light and dark Nord theme and ~C-c F6~ to set to default theme.
@@ -138,7 +147,7 @@
   :init
   (setq heaven-and-hell-theme-type 'dark)
   (setq heaven-and-hell-themes
-        '((light . doom-nord-aurora)
+  '((light . doom-nord-aurora)
           (dark . doom-nord))
   )
   :hook (after-init . heaven-and-hell-init-hook)
@@ -147,6 +156,8 @@
 )
 #+END_SRC
 
+#+RESULTS:
+: heaven-and-hell-toggle-theme
 
 ** Disable ansi color in compilation mode
   This will help eliminate weird escape sequences during project compilation.
@@ -162,20 +173,24 @@
 )
 #+END_SRC
 
+#+RESULTS:
+: t
+
 ** Pdf-tools and Midnite Mode
 *pdf-tools* improves the pdf viewing experience drastically and *midnite-mode* allows us to set a pdf contrast that adheres to the Nord theme. In *pdf-view-mode*, the keys ~!,@,#,$,%~ can be used to set the midnite mode to each of the themes explained below.
 #+BEGIN_SRC emacs-lisp
   ;; Installing pdf-tools and friends
 (use-package pdf-tools
   :ensure t)
+
+;;; Code:
+(pdf-tools-install)
+
 (require 'pdf-occur)
 (require 'pdf-history)
 (require 'pdf-tools)
 (require 'pdf-outline)
 (require 'pdf-annot)
-
-;;; Code:
-(pdf-tools-install)
 
 ;; midnite mode hook
 (add-hook 'pdf-view-mode-hook (lambda ()
@@ -230,15 +245,60 @@
 (add-hook 'pdf-view-mode-hook 'pdf-midnite-colour-schemes)
 #+END_SRC
 
+#+RESULTS:
+| pdf-midnite-colour-schemes | (lambda nil (pdf-view-midnight-minor-mode)) | pdf-tools-enable-minor-modes |
+
+** Org Mode configuration
+Org Mode is a useful major mode for writing, literate programming, planning, and GTD. My configuration is largely inspired by this blog post: [[https://protesilaos.com/codelog/2020-07-18-emacs-concept-org-tweaked-focus][here]]. In summary, I alter the size of headings based on its level.
+
+#+BEGIN_SRC emacs-lisp
+(custom-set-faces
+  '(org-level-1 ((t (:inherit outline-1 :height 2.0))))
+  '(org-level-2 ((t (:inherit outline-2 :height 1.5))))
+  '(org-level-3 ((t (:inherit outline-3 :height 1.2))))
+  '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
+  '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
+)
+
+;; Alters the window padding to 1 and turns off the dividers.
+(use-package emacs
+  :config
+  (setq window-divider-default-right-width 1)
+  (setq window-divider-default-bottom-width 1)
+  (setq window-divider-default-places t)
+  (window-divider-mode -1)
+)
+
+;; Add org-indent-mode to org-mode-hook
+(add-hook 'org-mode-hook 'org-indent-mode)
+#+END_SRC
+
+*** olivetti-mode
+
+*olivetti-mode* is a minor mode that turns *org-mode* into a better writing environment. On the surface, it centers the main writing area, constrains the document within a certain number of character spaces to create a more aesthetic *org-mode* environment.
+
+#+BEGIN_SRC emacs-lisp
+(use-package olivetti
+  :ensure
+  :config
+  (setq-default olivetti-body-width 0.65)
+  (setq-default olivetti-minimum-body-width 72)
+  (setq olivetti-recall-visual-line-mode-entry-state t)
+  :hook
+  (org-mode . olivetti-mode)
+  :bind ("C-c o" . olivetti-mode)
+)
+#+END_SRC
+
 * Custom Packages
   This section contains packages for general convenience.
-
 ** Vterm
    Vterm is an improvement on term and usually requires the machine to have Cmake as a dependency.
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
     :ensure t)
 #+END_SRC
+
 ** Yasnippet
 The *Yasnippet* package offers a variety of snippets for several major modes. 
 #+BEGIN_SRC emacs-lisp
@@ -266,6 +326,7 @@ The *Yasnippet* package offers a variety of snippets for several major modes.
 (setq key-chord-one-key-delay 0.2) ; default 0.2
 )
 #+END_SRC
+
 ** Projectile
 Projectile helps with navigation within projects. It recognizes several source control managed folders like *git, mercurial, maven, etc.* and a folder with an empty *.projectile* file. The binding ~C-c p~ is used to invoke any projectile command.
 #+BEGIN_SRC emacs-lisp
@@ -276,6 +337,9 @@ Projectile helps with navigation within projects. It recognizes several source c
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 )   
 #+END_SRC
+
+#+RESULTS:
+: t
 
 ** Helm
 Helm is a suggestion framework that changes the default way in which files, options, words, are suggested in various built-in features to a more intuitive way. We will replace many of the built in functions with the helm version to make use of this package.
@@ -296,6 +360,9 @@ Helm is a suggestion framework that changes the default way in which files, opti
   (("C-c g" . helm-grep-do-git-grep))
 )  ;; Search using grep in a git project
 #+END_SRC
+
+#+RESULTS:
+: helm-grep-do-git-grep
 
 Use ~C-c h~ to access further helm options as this is the helm prefix we have assigned. Additionally, we enabled fuzzy matching which allows for our search query to not be the exact thing we are searching for. (E.g. 'aurroa' will suggest 'aurora')
 
@@ -362,7 +429,7 @@ Some package prefix commands like ~C-c p~ or ~C-c h~ provides several options fo
   (which-key-mode)
 )
 #+END_SRC
-
+es
 * Programming related
 ** Various programming major modes
 #+BEGIN_SRC emacs-lisp
@@ -371,10 +438,12 @@ Some package prefix commands like ~C-c p~ or ~C-c h~ provides several options fo
   :mode ("\\.md\\'" . markdown-mode))
 
 ;; Installing json-mode
-(use-package json-mode)
+(use-package json-mode
+  :ensure t)
 
 ;; Installing yaml mode
-(use-package yaml-mode)
+(use-package yaml-mode
+  :ensure t)
 #+END_SRC
 ** Language Server Protocol (LSP)
 This section configures several packages closely related to LSP.

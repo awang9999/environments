@@ -91,7 +91,7 @@ RunWithoutPrompt()
     sudo snap install thunderbird;
     sudo apt-get install -y neofetch;
     sudo snap install mc-installer;
-    sudo snap install alacritty -classic;
+    sudo snap install slack;
 }
 
 RunWithPrompt()
@@ -178,9 +178,9 @@ RunWithPrompt()
 	sudo snap install mc-installer;
     fi
 
-    if confirm "Do you want to install Alacritty?";
+    if confirm "Do you want to install Slack?";
     then
-	sudo snap install alacritty -classic
+	sudo snap install slack;
     fi
 }
 

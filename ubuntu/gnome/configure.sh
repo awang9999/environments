@@ -83,6 +83,8 @@ RunWithPrompt()
     then
 	/bin/bash ./configure_dock.sh;
     fi
+
+	echo "Don't forget to install Gnome Nord Profile! (Use their github repo!)"
 }
 
 ########################
