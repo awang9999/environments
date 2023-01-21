@@ -82,6 +82,13 @@ RunWithPrompt()
 		sudo perl ./install-tl-*/install-tl --no-interaction;
 		echo "Don't forget to prepend '/usr/local/texlive/YYYY/bin/PLATFORM' to your PATH!";
 	fi
+
+	if confirm "Do you want to install node and npm?";
+	then
+		sudo apt-get -y install nodejs;
+		sudo apt-get -y install npm;
+	fi
+	
 }
 
 
