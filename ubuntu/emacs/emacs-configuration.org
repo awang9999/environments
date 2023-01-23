@@ -8,15 +8,15 @@
   The structure of this configuration is as so. The Emacs configuration directory, ~EMACS_DIR~, is set to ~~/.emacs.d~. The initialization file, ~~/.emacs.d/init.el~, is the entry point for Emacs and uses the ~org-babel-load-file~ command to load this file. The speed up loading time, I have disabled garbage collection during startup. This is done by setting the ~gc-cons-threshold~ and ~gc-cons-percentage~ variables before and after loading this configuration file. Currently, ~gc-cons-threshold~ is set to 1 GB after startup. These variables determine how much memory can be allocated before garbage collection is commenced.
 
 ** Setup MELPA, ELPA, ORG
-  In the following code block, we will initialize package repositories and configure ~use-package~. This package is used to install further packages.
+   In the following code block, we will initialize package repositories and configure ~use-package~. This package is used to install further packages.
+
 #+BEGIN_SRC emacs-lisp
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("elpa" . "https://elpa.gnu.org/packages/")
-			  ("org" . "https://orgmode.org/elpa/")
-))
-
+			 ("org" . "https://orgmode.org/elpa/"))
+)
 
 (package-initialize)
 
@@ -29,19 +29,16 @@
 (unless (package-installed-p package) (package-install package)))
 #+END_SRC
 
-#+RESULTS:
-
 ** Environment Setup
    Emacs fails to properly load environment variables in some operating systems so we can install ~exec-path-from-shell~ to fix that.
 
-  #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
     (use-package exec-path-from-shell 
-        :ensure t)
-    (exec-path-from-shell-initialize)
-  #+END_SRC
-
-  #+RESULTS:
-  : ((MANPATH . ) (PATH . /usr/local/texlive/2022/bin/x86_64-linux:/usr/local/texlive/2022/bin/x86_64-linux:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin))
+        :ensure t
+	:config
+	(exec-path-from-shell-initialize)
+)
+#+END_SRC
 
 ** Basic Setup
    This section contains several basic settings within emacs such as loading the language, disabling the toolbar, and setting up the autosave directory etc.
@@ -92,8 +89,9 @@
   ;; Automatically pair brackets and braces
   (electric-pair-mode 1)
 
-  ;; Turn on line numbers for programming modes
+  ;; Turn on line numbers for programming modes and org-mode
   (add-hook 'prog-mode-hook 'linum-mode)
+  (add-hook 'org-mode-hook 'linum-mode)
   (setq linum-format " %d") 
 
   ;; Set font
@@ -114,9 +112,6 @@
   ;; Turn on tab-bar-mode for and configure it
   (add-hook 'prog-mode-hook 'tab-bar-mode)
 #+END_SRC
-
-#+RESULTS:
-| yas-minor-mode | tab-bar-mode | linum-mode |
 
 * Visual Elements
 ** Theme
@@ -146,9 +141,8 @@
   :ensure t
   :init
   (setq heaven-and-hell-theme-type 'dark)
-  (setq heaven-and-hell-themes
-  '((light . doom-nord-aurora)
-          (dark . doom-nord))
+  (setq heaven-and-hell-themes '((light . doom-nord-light)
+                                 (dark . doom-nord))
   )
   :hook (after-init . heaven-and-hell-init-hook)
   :bind (("C-c <f6>" . heaven-and-hell-load-default-theme)
@@ -156,35 +150,30 @@
 )
 #+END_SRC
 
-#+RESULTS:
-: heaven-and-hell-toggle-theme
-
 ** Disable ansi color in compilation mode
-  This will help eliminate weird escape sequences during project compilation.
+  This will help eliminate weird escape sequences during project compilation. Code src block taken from: [[https://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html][source]].
 #+BEGIN_SRC emacs-lisp
-(defun my/ansi-colorize-buffer ()
-  (let ((buffer-read-only nil))
-  (ansi-color-apply-on-region (point-min) (point-max))))
-
-  (use-package ansi-color
-    :ensure t
-    :config
-  (add-hook 'compilation-filter-hook 'my/ansi-colorize-buffer)
+(require 'ansi-color)
+(defun endless/colorize-compilation ()
+  "Colorize from `compilation-filter-start' to `point'."
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region
+     compilation-filter-start (point))
+  )
 )
+
+(add-hook 'compilation-filter-hook #'endless/colorize-compilation)
 #+END_SRC
 
-#+RESULTS:
-: t
+** Pdf-tools and Midnight Mode
+*pdf-tools* improves the pdf viewing experience drastically and *midnight-mode* allows us to set a pdf contrast that adheres to the Nord theme. In *pdf-view-mode*, the keys ~!,@,#,$,%~ can be used to set the midnight mode to each of the themes explained below.
 
-** Pdf-tools and Midnite Mode
-*pdf-tools* improves the pdf viewing experience drastically and *midnite-mode* allows us to set a pdf contrast that adheres to the Nord theme. In *pdf-view-mode*, the keys ~!,@,#,$,%~ can be used to set the midnite mode to each of the themes explained below.
 #+BEGIN_SRC emacs-lisp
-  ;; Installing pdf-tools and friends
-(use-package pdf-tools
-  :ensure t)
+;; Installing pdf-tools and friends
 
-;;; Code:
-(pdf-tools-install)
+(use-package pdf-tools
+  :ensure t
+)
 
 (require 'pdf-occur)
 (require 'pdf-history)
@@ -192,61 +181,25 @@
 (require 'pdf-outline)
 (require 'pdf-annot)
 
-;; midnite mode hook
-(add-hook 'pdf-view-mode-hook (lambda ()
-                                (pdf-view-midnight-minor-mode))) ; automatically turns on midnight-mode for pdfs
+(pdf-tools-install)
 
-(setq pdf-view-midnight-colors '("#d8dee9" . "#3b4252"))
+;; Make pdf-view the default major mode for .pdf extension files
+(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 
-(defun pdf-no-filter ()
-  "View pdf without colour filter."
-  (interactive)
-  (pdf-view-midnight-minor-mode -1)
-  )
+;; Personal custom configuration for pdf-view-mode
+(defun zander/pdf-view-config ()
+  ;; Set default view mode to fit page to window
+  (setq-default pdf-view-display-size 'fit-page)
+  ;; Produce finer grained pdf resizing
+  (setq pdf-view-resize-factor 1.1)
+  ;; Enable pdf-view-themed-minor mode
+  (pdf-view-themed-minor-mode)
+  ;; Bind ! key to toggle pdf-view-themed-minor-mode
+  (local-set-key (kbd "!") (quote pdf-view-themed-minor-mode))
+)
 
-;; change midnite mode colours functions
-(defun pdf-midnite-nord-original ()
-  "Set pdf-view-midnight-colors to Nord colour scheme colours."
-  (interactive)
-  (setq pdf-view-midnight-colors '("#d8dee9" . "#3b4252")) ; Nord colour palette
-  (pdf-view-midnight-minor-mode)
-  )
-
-(defun pdf-midnite-nord-amber ()
-  "Set pdf-view-midnight-colors to Nord colour scheme yellow on slate gray."
-  (interactive)
-  (setq pdf-view-midnight-colors '("#ebcb8b" . "#3b4252")) ; Nord colour palette
-  (pdf-view-midnight-minor-mode)
-  )
-
-(defun pdf-midnite-nord-green ()
-  "Set pdf-view-midnight-colors to Nord colour scheme green on slate gray."
-  (interactive)
-  (setq pdf-view-midnight-colors '("#a3be8c" . "#3b4252")) ; Nord colour palette
-  (pdf-view-midnight-minor-mode)
-  )
-
-(defun pdf-midnite-nord-blue ()
-  "Set pdf-view-midnight-colors to Nord colour scheme blue on slate gray."
-  (interactive)
-  (setq pdf-view-midnight-colors '("#88c0d0" . "#3b4252")) ; Nord colour palette
-  (pdf-view-midnight-minor-mode)
-  )
-
-(defun pdf-midnite-colour-schemes ()
-  "Midnight mode colour schemes bound to keys"
-  (local-set-key (kbd "!") (quote pdf-no-filter))
-  (local-set-key (kbd "@") (quote pdf-midnite-nord-amber))
-  (local-set-key (kbd "#") (quote pdf-midnite-nord-green))
-  (local-set-key (kbd "$") (quote pdf-midnite-nord-blue))
-  (local-set-key (kbd "%") (quote pdf-midnite-nord-original))
-  )
-
-(add-hook 'pdf-view-mode-hook 'pdf-midnite-colour-schemes)
+(add-hook 'pdf-view-mode-hook 'zander/pdf-view-config)
 #+END_SRC
-
-#+RESULTS:
-| pdf-midnite-colour-schemes | (lambda nil (pdf-view-midnight-minor-mode)) | pdf-tools-enable-minor-modes |
 
 ** Org Mode configuration
 Org Mode is a useful major mode for writing, literate programming, planning, and GTD. My configuration is largely inspired by this blog post: [[https://protesilaos.com/codelog/2020-07-18-emacs-concept-org-tweaked-focus][here]]. In summary, I alter the size of headings based on its level.
@@ -298,7 +251,7 @@ Org Mode is a useful major mode for writing, literate programming, planning, and
 (use-package vterm
     :ensure t
     :bind
-    ("C-c v" . vterm)
+    ("C-c z" . vterm)
 )
 #+END_SRC
 
@@ -311,6 +264,7 @@ The *Yasnippet* package offers a variety of snippets for several major modes.
   :hook
   (prog-mode . yas-minor-mode)
 )
+
 (use-package yasnippet-snippets
   :ensure t
   :after yas)
@@ -322,11 +276,11 @@ The *Yasnippet* package offers a variety of snippets for several major modes.
 *Key-chord* allows us to bind regular keys to commands without using Ctrl or Meta prefixes.
 #+BEGIN_SRC emacs-lisp
 (use-package use-package-chords
-:ensure t
-:init 
-:config (key-chord-mode 1)
-(setq key-chord-two-keys-delay 0.4)
-(setq key-chord-one-key-delay 0.2) ; default 0.2
+  :ensure t
+  :init 
+  :config (key-chord-mode 1)
+  (setq key-chord-two-keys-delay 0.4)
+  (setq key-chord-one-key-delay 0.2) ; default 0.2
 )
 #+END_SRC
 
@@ -341,86 +295,56 @@ Projectile helps with navigation within projects. It recognizes several source c
 )   
 #+END_SRC
 
-#+RESULTS:
-: t
-
-** Helm
-Helm is a suggestion framework that changes the default way in which files, options, words, are suggested in various built-in features to a more intuitive way. We will replace many of the built in functions with the helm version to make use of this package.
+** Ivy
+*Ivy* is a generic completion mechanism in Emacs. It replaces *icomplete-mode* for suggesting completions within Emacs. *Counsel* takes this one step further by remapping several build-in Emacs funcitons with counsel replacements that guarantee usage of the *Ivy* completion system.
 
 #+BEGIN_SRC emacs-lisp
-(use-package helm
-  :ensure t
-  :init 
-  (helm-mode 1)
-  (progn (setq helm-buffers-fuzzy-matching t))
-  :bind
-  (("C-c h" . helm-command-prefix))
-  (("M-x" . helm-M-x))
-  (("C-x C-f" . helm-find-files))
-  (("C-x b" . helm-buffers-list))
-  (("C-c b" . helm-bookmarks))
-  (("C-c f" . helm-recentf))   ;; Add new key to recentf
-  (("C-c g" . helm-grep-do-git-grep))
-)  ;; Search using grep in a git project
-#+END_SRC
 
-#+RESULTS:
-: helm-grep-do-git-grep
+(use-package counsel
+    :ensure t)
+;; Basic configuration taken from https://github.com/abo-abo/swiper
+;; and https://oremacs.com/swiper/#introduction
+(ivy-mode)
+(setq ivy-use-virtual-buffers t)
+(setq enable-recursive-minibuffers t)
+(setq ivy-count-format "(%d/%d) ")
 
-Use ~C-c h~ to access further helm options as this is the helm prefix we have assigned. Additionally, we enabled fuzzy matching which allows for our search query to not be the exact thing we are searching for. (E.g. 'aurroa' will suggest 'aurora')
+;; Ivy-based interface to standard commands
+(global-set-key (kbd "C-s") 'swiper-isearch)
+(global-set-key (kbd "M-x") 'counsel-M-x)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+(global-set-key (kbd "M-y") 'counsel-yank-pop)
+(global-set-key (kbd "<f1> f") 'counsel-describe-function)
+(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+(global-set-key (kbd "<f1> l") 'counsel-find-library)
+(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+(global-set-key (kbd "<f2> j") 'counsel-set-variable)
+(global-set-key (kbd "C-x b") 'ivy-switch-buffer)
+(global-set-key (kbd "C-c v") 'ivy-push-view)
+(global-set-key (kbd "C-c V") 'ivy-pop-view)
 
-Helm descbinds is a package that allows us to search for keyboard shortcuts within the active modes in the current buffer. This can be helpful in exposing keyboard shortcuts for commands you want to use. Use ~C-c b~ to bring up the *helm-descbinds* window.
+;; Ivy-based interface to shell and system tools
+(global-set-key (kbd "C-c c") 'counsel-compile)
+(global-set-key (kbd "C-c g") 'counsel-git)
+(global-set-key (kbd "C-c j") 'counsel-git-grep)
+(global-set-key (kbd "C-c L") 'counsel-git-log)
+(global-set-key (kbd "C-c k") 'counsel-rg)
+(global-set-key (kbd "C-c m") 'counsel-linux-app)
+(global-set-key (kbd "C-c n") 'counsel-fzf)
+(global-set-key (kbd "C-x l") 'counsel-locate)
+(global-set-key (kbd "C-c J") 'counsel-file-jump)
+(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+(global-set-key (kbd "C-c w") 'counsel-wmctrl)
 
-#+BEGIN_SRC 
-(use-package helm-descbinds
-  :ensure t
-  :bind ("C-h b" . helm-descbinds)
-)
-#+END_SRC
-
-*Helm-swoop* allows to quickly search for text under the cursor or new text within the current file. You can type ~js~ to search and jump to a target line and ~jp~ to move back to the point where we initiated the search. We can continue to use ~C-s~ and ~C-r~ the same way and can type ~M-m~ to invoke *helm-swoop* from *isearch-mode*
-
-#+BEGIN_SRC
-(use-package helm-swoop 
-:ensure t
-:chords
-("js" . helm-swoop)
-("jp" . helm-swoop-back-to-last-point)
-:init
-(bind-key "M-m" 'helm-swoop-from-isearch isearch-mode-map)
-
-;; If you prefer fuzzy matching
-(setq helm-swoop-use-fuzzy-match t)
-
-;; Save buffer when helm-multi-swoop-edit complete
-(setq helm-multi-swoop-edit-save t)
-
-;; If this value is t, split window inside the current window
-(setq helm-swoop-split-with-multiple-windows nil)
-
-;; Split direction. 'split-window-vertically or 'split-window-horizontally
-(setq helm-swoop-split-direction 'split-window-vertically)
-
-;; If nil, you can slightly boost invoke speed in exchange for text color
-(setq helm-swoop-speed-or-color nil)
-
-;; ;; Go to the opposite side of line from the end or beginning of line
-(setq helm-swoop-move-to-line-cycle t)
-
-)
-#+END_SRC 
-
-** Avy Goto
-*Avy* allows you to jump to characters, words, or lines within a file. Use ~jc~, ~jw~, or ~jl~ to quickly jump within the current file.
-
-#+BEGIN_SRC emacs-lisp
-(use-package avy
-  :ensure t
-  :chords
-  ("jc" . avy-goto-char)
-  ("jw" . avy-goto-word-1)
-  ("jl" . avy-goto-line)
-)
+;; Ivy-resume and other commands that assist with resuming the last ivy-based completion
+(global-set-key (kbd "C-c C-r") 'ivy-resume)
+(global-set-key (kbd "C-c b") 'counsel-bookmark)
+(global-set-key (kbd "C-c d") 'counsel-descbinds)
+(global-set-key (kbd "C-c g") 'counsel-git)
+(global-set-key (kbd "C-c o") 'counsel-outline)
+(global-set-key (kbd "C-c t") 'counsel-load-theme)
+(global-set-key (kbd "C-c F") 'counsel-org-file)
 #+END_SRC
 
 ** Which Key
@@ -432,7 +356,7 @@ Some package prefix commands like ~C-c p~ or ~C-c h~ provides several options fo
   (which-key-mode)
 )
 #+END_SRC
-es
+
 * Programming related
 ** Various programming major modes
 #+BEGIN_SRC emacs-lisp
@@ -476,6 +400,7 @@ Emacs Debug Adapter Protocol (DAP) Mode allows us to debug programs. We will int
     (dap-session-created . (lambda (&_rest) (dap-hydra)))
     (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))))
 #+END_SRC
+
 *** FlyCheck
 *Flycheck* is a package that will display warnings and errors at run-time.
 #+BEGIN_SRC emacs-lisp
@@ -484,6 +409,7 @@ Emacs Debug Adapter Protocol (DAP) Mode allows us to debug programs. We will int
   :init (global-flycheck-mode)
 )
 #+END_SRC
+
 *** Treemacs
 *Treemacs* provides a UI element to display the file structure of a project as a tree. We will also install *lsp-treemacs* so we can integrate this feature with *lsp*. Additionally, we will bind ~M-9~ to show the list of errors.
 #+BEGIN_SRC emacs-lisp
@@ -516,15 +442,15 @@ Emacs Debug Adapter Protocol (DAP) Mode allows us to debug programs. We will int
 ))
 #+END_SRC
 
-*** Helm LSP
-*Helm-lsp* replaces the native ~xref-find-apropos~ package for symbol navigation with the helm version. Essentially, this will help you find the symbols (classes, enums, interfaces, etc) within your workspace using helm.
+*** LSP Ivy
+*lsp-ivy* replaces the native ~xref-find-apropos~ package for symbol navigation with the helm version. Essentially, this will help you find the symbols (classes, enums, interfaces, etc) within your workspace using helm.
 
 #+BEGIN_SRC
-(use-package helm-lsp
+(use-package ivy-lsp
 :ensure t
 :after (lsp-mode)
-:commands (helm-lsp-workspace-symbol)
-:init (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
+:commands (lsp-ivy-workspace-symbol)
+:init (define-key lsp-mode-map [remap xref-find-apropos] #'lsp-ivy-workspace-symbol))
 #+END_SRC
 
 *** LSP
@@ -540,7 +466,7 @@ Start the LSP server in a java project using ~C-c l s s~ or just type the prefix
    (java-mode . #'lsp-deferred)
 )
 :init (setq 
-    lsp-keymap-prefix "C-c l"              ; this is for which-key integration documentation, need to use lsp-mode-map
+    lsp-keymap-prefix "C-c l" ; this is for which-key integration documentation, need to use lsp-mode-map
     lsp-enable-file-watchers nil
     read-process-output-max (* 1024 1024)  ; 1 mb
     lsp-completion-provider :capf
@@ -562,6 +488,7 @@ In this section, we install several LSP servers for a variety of languages.
   :config (add-hook 'java-mode-hook 'lsp)
 )
 #+END_SRC
+
 * LaTeX related
 ** AUCTeX
 *AUCTeX* is THE integrated environment for editing LaTeX and TeX files in Emacs (And several other TeX related files).
