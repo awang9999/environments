@@ -196,6 +196,8 @@
   (pdf-view-themed-minor-mode)
   ;; Bind ! key to toggle pdf-view-themed-minor-mode
   (local-set-key (kbd "!") (quote pdf-view-themed-minor-mode))
+
+  (auto-revert-mode)
 )
 
 (add-hook 'pdf-view-mode-hook 'zander/pdf-view-config)
@@ -357,6 +359,29 @@ Some package prefix commands like ~C-c p~ or ~C-c h~ provides several options fo
 )
 #+END_SRC
 
+** Company
+*Company* or Complete Anything provides in-place auto-completion.
+#+BEGIN_SRC emacs-lisp
+;; Install and configure company mode
+(use-package company
+    :ensure t)
+;; Enable completion everywhere
+(add-hook 'after-init-hook 'global-company-mode) 
+
+;; Add yasnippet support for all company backends
+;; https://github.com/syl20bnr/spacemacs/pull/179
+(defvar company-mode/enable-yas t
+  "Enable yasnippet for all backends.")
+
+(defun company-mode/backend-with-yas (backend)
+  (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
+      backend
+    (append (if (consp backend) backend (list backend))
+            '(:with company-yasnippet))))
+
+(setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
+#+END_SRC
+
 * Programming related
 ** Various programming major modes
 #+BEGIN_SRC emacs-lisp
@@ -372,18 +397,9 @@ Some package prefix commands like ~C-c p~ or ~C-c h~ provides several options fo
 (use-package yaml-mode
   :ensure t)
 #+END_SRC
+
 ** Language Server Protocol (LSP)
 This section configures several packages closely related to LSP.
-*** Company
-*Company* or Complete Anything provides in-place auto-completion.
-#+BEGIN_SRC emacs-lisp
-  ;; Install and configure company mode
-  (use-package company
-    :ensure t)
-  ;; Enable completion everywhere
-  (add-hook 'after-init-hook 'global-company-mode) 
-#+END_SRC
-
 *** Dap Mode
 Emacs Debug Adapter Protocol (DAP) Mode allows us to debug programs. We will integrate ~dap-mode~ with ~dap-hydra~, a package that shows what keys we can use to enable various options and also move through code at runtime. We additionally install ~dap-java~.
 
@@ -486,6 +502,48 @@ In this section, we install several LSP servers for a variety of languages.
 (use-package lsp-java
   :ensure t
   :config (add-hook 'java-mode-hook 'lsp)
+)
+
+(use-package ccls
+  :ensure t
+  :config
+  (add-hook 'c-mode 'lsp)
+  (add-hook 'c++-mode 'lsp)
+  (add-hook 'objc-mode 'lsp)
+)
+
+(use-package lsp-python-ms
+  :ensure t
+  :config
+  (add-hook 'python-mode 'lsp)
+)
+
+(use-package typescript-language-server
+  :ensure t
+  :config
+  (add-hook 'js2-mode 'lsp)
+  (add-hook 'rjsx-mode 'lsp)
+  (add-hook 'typescript-mode 'lsp)
+)
+
+(use-package vscode-css-languageserver-bin
+  :ensure t
+  :config
+  (add-hook 'web-mode 'lsp)
+  (add-hook 'css-mode 'lsp)
+  (add-hook 'scss-mode 'lsp)
+  (add-hook 'sass-mode 'lsp)
+  (add-hook 'less-css-mode 'lsp)
+)
+
+(use-package vscode-html-languageserver-bin
+  :ensure t
+  :config
+  (add-hook 'web-mode 'lsp)
+  (add-hook 'css-mode 'lsp)
+  (add-hook 'scss-mode 'lsp)
+  (add-hook 'sass-mode 'lsp)
+  (add-hook 'less-css-mode 'lsp)
 )
 #+END_SRC
 
