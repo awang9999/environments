@@ -1,11 +1,11 @@
-#+TITLE: Zemacs configuration
 #+author: Alexander Wang
+#+TITLE: Zemacs configuration
 
 * Introduction
   This configuration file contains the setup for several Emacs packages that I (Alexander Wang) need for my daily driver. Several ideas from this configuration are taken from [[https://github.com/neppramod/java_emacs][here]].
 
 * Setup
-  The structure of this configuration is as so. The Emacs configuration directory, ~EMACS_DIR~, is set to ~~/.emacs.d~. The initialization file, ~~/.emacs.d/init.el~, is the entry point for Emacs and uses the ~org-babel-load-file~ command to load this file. The speed up loading time, I have disabled garbage collection during startup. This is done by setting the ~gc-cons-threshold~ and ~gc-cons-percentage~ variables before and after loading this configuration file. Currently, ~gc-cons-threshold~ is set to 1 GB after startup. These variables determine how much memory can be allocated before garbage collection is commenced.
+  The structure of this configuration is as so. The Emacs configuration directory, ~EMACS_DIR~, is set to ~/.emacs.d~. The initialization file, ~/.emacs.d/init.el~, is the entry point for Emacs and uses the ~org-babel-load-file~ command to load this file. The speed up loading time, I have disabled garbage collection during startup. This is done by setting the ~gc-cons-threshold~ and ~gc-cons-percentage~ variables before and after loading this configuration file. Currently, ~gc-cons-threshold~ is set to 1 GB after startup. These variables determine how much memory can be allocated before garbage collection is commenced.
 
 ** Setup MELPA, ELPA, ORG
    In the following code block, we will initialize package repositories and configure ~use-package~. This package is used to install further packages.
@@ -98,7 +98,9 @@
   (set-face-attribute 'default nil :font "Ubuntu Mono" :height 160)
 
   ;; Set tab-width to 4
-  (setq-default tab-width 4)
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 2)
+  (setq indent-line-function 'insert-tab)
 
   ;; Highlight matching brackets and braces
   (use-package paren
@@ -111,6 +113,9 @@
 
   ;; Turn on tab-bar-mode for and configure it
   (add-hook 'prog-mode-hook 'tab-bar-mode)
+
+;; Select help window when opened
+(setq help-window-select t)
 #+END_SRC
 
 * Visual Elements
@@ -203,7 +208,7 @@
 (add-hook 'pdf-view-mode-hook 'zander/pdf-view-config)
 #+END_SRC
 
-** Org Mode configuration
+* Org Mode
 Org Mode is a useful major mode for writing, literate programming, planning, and GTD. My configuration is largely inspired by this blog post: [[https://protesilaos.com/codelog/2020-07-18-emacs-concept-org-tweaked-focus][here]]. In summary, I alter the size of headings based on its level.
 
 #+BEGIN_SRC emacs-lisp
@@ -224,11 +229,35 @@ Org Mode is a useful major mode for writing, literate programming, planning, and
   (window-divider-mode -1)
 )
 
+;;  To syntax highlight your code, and remove the "do you want to execute" your code block
+(setq org-confirm-babel-evaluate nil
+      org-src-fontify-natively t
+      org-src-tab-acts-natively t)
+
 ;; Add org-indent-mode to org-mode-hook
 (add-hook 'org-mode-hook 'org-indent-mode)
 #+END_SRC
 
-*** olivetti-mode
+** Language support
+#+begin_src emacs-lisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(
+     (shell      . t)
+     (python     . t)
+     (js         . t)
+     (emacs-lisp . t)
+     (dot        . t)
+     (css        . t) 
+     (plantuml   . t) 
+    )
+   )
+
+  (setq org-babel-python-command "/bin/python3")
+  (setq org-babel-shell-command "/bin/zsh")
+#+end_src
+
+** olivetti-mode
 
 *olivetti-mode* is a minor mode that turns *org-mode* into a better writing environment. On the surface, it centers the main writing area, constrains the document within a certain number of character spaces to create a more aesthetic *org-mode* environment.
 
@@ -383,19 +412,43 @@ Some package prefix commands like ~C-c p~ or ~C-c h~ provides several options fo
 #+END_SRC
 
 * Programming related
+** Treesitter
+#+begin_src emacs-lisp
+  ;; Loading tree-sitter package
+  (use-package tree-sitter
+    :ensure t)
+  
+  (use-package tree-sitter-langs
+    :ensure t)
+
+  ;; Activate tree-sitter globally (minor mode registered on every buffer)
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+#+end_src
 ** Various programming major modes
 #+BEGIN_SRC emacs-lisp
-;; Installing and configuring markdown-mode
-(use-package markdown-mode
-  :mode ("\\.md\\'" . markdown-mode))
+  ;; Installing and configuring markdown-mode
+  (use-package markdown-mode
+    :mode ("\\.md\\'" . markdown-mode))
 
-;; Installing json-mode
-(use-package json-mode
-  :ensure t)
+  ;; Install web-mode
+  (use-package web-mode
+    :ensure t
+    :mode 
+    ("\\.tsx\\'" . web-mode))
 
-;; Installing yaml mode
-(use-package yaml-mode
-  :ensure t)
+  ;; ;; use typescript mode for .tsx
+  ;; (use-package typescript-mode
+  ;;   :ensure t
+  ;;   :mode ("\\.tsx\\'" . typescript-mode))
+
+  ;; Installing json-mode
+  (use-package json-mode
+    :ensure t)
+
+  ;; Installing yaml mode
+  (use-package yaml-mode
+    :ensure t)
 #+END_SRC
 
 ** Language Server Protocol (LSP)
@@ -438,8 +491,105 @@ Emacs Debug Adapter Protocol (DAP) Mode allows us to debug programs. We will int
 
 (use-package treemacs
   :ensure t
-  :commands (treemacs)
-  :after (lsp-mode))
+  :defer t
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  :config
+  (progn
+    (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+          treemacs-deferred-git-apply-delay        0.5
+          treemacs-directory-name-transformer      #'identity
+          treemacs-display-in-side-window          t
+          treemacs-eldoc-display                   'simple
+          treemacs-file-event-delay                2000
+          treemacs-file-extension-regex            treemacs-last-period-regex-value
+          treemacs-file-follow-delay               0.2
+          treemacs-file-name-transformer           #'identity
+          treemacs-follow-after-init               t
+          treemacs-expand-after-init               t
+          treemacs-find-workspace-method           'find-for-file-or-pick-first
+          treemacs-git-command-pipe                ""
+          treemacs-goto-tag-strategy               'refetch-index
+          treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+          treemacs-hide-dot-git-directory          t
+          treemacs-indentation                     2
+          treemacs-indentation-string              " "
+          treemacs-is-never-other-window           nil
+          treemacs-max-git-entries                 5000
+          treemacs-missing-project-action          'ask
+          treemacs-move-forward-on-expand          nil
+          treemacs-no-png-images                   nil
+          treemacs-no-delete-other-windows         t
+          treemacs-project-follow-cleanup          nil
+          treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+          treemacs-position                        'left
+          treemacs-read-string-input               'from-child-frame
+          treemacs-recenter-distance               0.1
+          treemacs-recenter-after-file-follow      nil
+          treemacs-recenter-after-tag-follow       nil
+          treemacs-recenter-after-project-jump     'always
+          treemacs-recenter-after-project-expand   'on-distance
+          treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+          treemacs-project-follow-into-home        nil
+          treemacs-show-cursor                     nil
+          treemacs-show-hidden-files               t
+          treemacs-silent-filewatch                nil
+          treemacs-silent-refresh                  nil
+          treemacs-sorting                         'alphabetic-asc
+          treemacs-select-when-already-in-treemacs 'move-back
+          treemacs-space-between-root-nodes        t
+          treemacs-tag-follow-cleanup              t
+          treemacs-tag-follow-delay                1.5
+          treemacs-text-scale                      nil
+          treemacs-user-mode-line-format           nil
+          treemacs-user-header-line-format         nil
+          treemacs-wide-toggle-width               70
+          treemacs-width                           35
+          treemacs-width-increment                 1
+          treemacs-width-is-initially-locked       t
+          treemacs-workspace-switch-cleanup        nil)
+
+    ;; The default width and height of the icons is 22 pixels. If you are
+    ;; using a Hi-DPI display, uncomment this to double the icon size.
+    ;;(treemacs-resize-icons 44)
+
+    (treemacs-follow-mode t)
+    (treemacs-filewatch-mode t)
+    (treemacs-fringe-indicator-mode 'always)
+    (when treemacs-python-executable
+      (treemacs-git-commit-diff-mode t))
+
+    (pcase (cons (not (null (executable-find "git")))
+                 (not (null treemacs-python-executable)))
+      (`(t . t)
+       (treemacs-git-mode 'deferred))
+      (`(t . _)
+       (treemacs-git-mode 'simple)))
+
+    (treemacs-hide-gitignored-files-mode nil))
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t d"   . treemacs-select-directory)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))
+
+(use-package treemacs-projectile
+  :after (treemacs projectile)
+  :ensure t)
+
+(use-package treemacs-icons-dired
+  :hook (dired-mode . treemacs-icons-dired-enable-once)
+  :ensure t)
+
+(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+  :after (treemacs)
+  :ensure t
+  :config (treemacs-set-scope-type 'Tabs))
 #+END_SRC
 
 *** LSP UI
@@ -480,6 +630,8 @@ Start the LSP server in a java project using ~C-c l s s~ or just type the prefix
 :hook (
    (lsp-mode . lsp-enable-which-key-integration)
    (java-mode . #'lsp-deferred)
+   (typescript-mode . #'lsp-deferred)
+   (javascript-mode . #'lsp-deferred)
 )
 :init (setq 
     lsp-keymap-prefix "C-c l" ; this is for which-key integration documentation, need to use lsp-mode-map
@@ -509,7 +661,7 @@ In this section, we install several LSP servers for a variety of languages.
   :config
   (add-hook 'c-mode 'lsp)
   (add-hook 'c++-mode 'lsp)
-  (add-hook 'objc-mode 'lsp)
+  (add-hook 'objc-mode 'lsp) 
 )
 
 (use-package lsp-python-ms
@@ -560,4 +712,23 @@ In this section, we install several LSP servers for a variety of languages.
     (setq TeX-parse-self t)
     (setq-default TeX-master nil)
 )
+#+END_SRC
+* Custom Definitions
+** C-d to duplicate line
+In several editors I've used in the past, the keybinding ~C-d~ duplicates the current line, opens a new line below, pastes it on the new line, and moves the cursor to the end of the new line. I intend to replicate this binding globally in my Emacs editor.
+
+#+BEGIN_SRC emacs-lisp
+
+(defun duplicate-line()
+  (interactive)
+  (move-beginning-of-line 1)
+  (kill-line)
+  (yank)
+  (open-line 1)
+  (next-line 1)
+  (yank)
+)
+
+(global-set-key (kbd "C-d") 'duplicate-line)
+
 #+END_SRC
