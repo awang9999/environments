@@ -11,33 +11,35 @@
    In the following code block, we will initialize package repositories and configure ~use-package~. This package is used to install further packages.
 
 #+BEGIN_SRC emacs-lisp
-(require 'package)
+  (require 'package)
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")
-			 ("org" . "https://orgmode.org/elpa/"))
-)
+  (setq package-archives '(
+      ("melpa" . "https://melpa.org/packages/")
+      ("elpa" . "https://elpa.gnu.org/packages/")
+      ("org" . "https://orgmode.org/elpa/")
+      )
+  )
 
-(package-initialize)
+  (package-initialize)
 
-; Fetch the list of packages available 
-(unless package-archive-contents (package-refresh-contents))
+  ; Fetch the list of packages available 
+  (unless package-archive-contents (package-refresh-contents))
 
-; Install use-package
-(setq package-list '(use-package))
-(dolist (package package-list)
-(unless (package-installed-p package) (package-install package)))
+  ; Install use-package
+  (setq package-list '(use-package))
+  (dolist (package package-list)
+  (unless (package-installed-p package) (package-install package)))
 #+END_SRC
 
 ** Environment Setup
    Emacs fails to properly load environment variables in some operating systems so we can install ~exec-path-from-shell~ to fix that.
 
 #+BEGIN_SRC emacs-lisp
-    (use-package exec-path-from-shell 
-        :ensure t
-	:config
-	(exec-path-from-shell-initialize)
-)
+  (use-package exec-path-from-shell 
+    :ensure t
+    :config
+    (exec-path-from-shell-initialize)
+  )
 #+END_SRC
 
 ** Basic Setup
@@ -97,7 +99,7 @@
   ;; Set font
   (set-face-attribute 'default nil :font "Ubuntu Mono" :height 160)
 
-  ;; Set tab-width to 4
+  ;; Set tab-width to 2
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 2)
   (setq indent-line-function 'insert-tab)
@@ -123,36 +125,38 @@
    I will try to stick to using the Nord colour scheme everywhere appropriate in Zemacs. The *doom-themes* package offers an easy solution to applying the Nord theme in Emacs. Additionally, *heaven-and-hell* provides us a function to toggle between two themes using a shortcut key. I will assign ~F6~ key to toggle between the light and dark Nord theme and ~C-c F6~ to set to default theme.
 
 #+BEGIN_SRC emacs-lisp
-  ;; Installing doom-themes and setting the Nord theme 
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-nord t)
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  ;; (doom-themes-neotree-config)
-  ;; or for treemacs users
-  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  ;; (doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config)
-)
-
-(use-package heaven-and-hell
-  :ensure t
-  :init
-  (setq heaven-and-hell-theme-type 'dark)
-  (setq heaven-and-hell-themes '((light . doom-nord-light)
-                                 (dark . doom-nord))
+    ;; Installing doom-themes and setting the Nord theme 
+  (use-package doom-themes
+    :ensure t
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-nord t)
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    ;; (doom-themes-neotree-config)
+    ;; or for treemacs users
+    ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+    ;; (doom-themes-treemacs-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config)
   )
-  :hook (after-init . heaven-and-hell-init-hook)
-  :bind (("C-c <f6>" . heaven-and-hell-load-default-theme)
-         ("<f6>" . heaven-and-hell-toggle-theme))
-)
+
+  (use-package heaven-and-hell
+    :ensure t
+    :init
+    (setq heaven-and-hell-theme-type 'dark)
+    (setq heaven-and-hell-themes '(
+                                   (light . doom-nord-light)
+                                   (dark . doom-nord)
+                                   )
+    )
+    :hook (after-init . heaven-and-hell-init-hook)
+    :bind (("C-c <f6>" . heaven-and-hell-load-default-theme)
+           ("<f6>" . heaven-and-hell-toggle-theme))
+  )
 #+END_SRC
 
 ** Disable ansi color in compilation mode
@@ -209,7 +213,9 @@
 #+END_SRC
 
 * Org Mode
-Org Mode is a useful major mode for writing, literate programming, planning, and GTD. My configuration is largely inspired by this blog post: [[https://protesilaos.com/codelog/2020-07-18-emacs-concept-org-tweaked-focus][here]]. In summary, I alter the size of headings based on its level.
+Org Mode is a useful major mode for writing, literate programming, planning, and GTD. My configuration is largely inspired by this blog post: [[https://protesilaos.com/codelog/2020-07-18-emacs-concept-org-tweaked-focus][here]]. 
+** Basic
+I alter the size of headings based on its level.
 
 #+BEGIN_SRC emacs-lisp
 (custom-set-faces
@@ -257,7 +263,7 @@ Org Mode is a useful major mode for writing, literate programming, planning, and
   (setq org-babel-shell-command "/bin/zsh")
 #+end_src
 
-** olivetti-mode
+** Olivetti-mode
 
 *olivetti-mode* is a minor mode that turns *org-mode* into a better writing environment. On the surface, it centers the main writing area, constrains the document within a certain number of character spaces to create a more aesthetic *org-mode* environment.
 
@@ -274,6 +280,8 @@ Org Mode is a useful major mode for writing, literate programming, planning, and
 )
 #+END_SRC
 
+** Org-Roam
+Org Roam is one of the packages I want to add to Zemacs
 * Custom Packages
   This section contains packages for general convenience.
 ** Vterm
@@ -450,6 +458,29 @@ Some package prefix commands like ~C-c p~ or ~C-c h~ provides several options fo
   (use-package yaml-mode
     :ensure t)
 #+END_SRC
+*** Make c++-mode the automatic fallback for .h files
+#+begin_src emacs-lisp 
+(require 'cl)
+
+(defun file-in-directory-list-p (file dirlist)
+  "Returns true if the file specified is contained within one of
+the directories in the list. The directories must also exist."
+  (let ((dirs (mapcar 'expand-file-name dirlist))
+        (filedir (expand-file-name (file-name-directory file))))
+    (and
+     (file-directory-p filedir)
+     (member-if (lambda (x) ; Check directory prefix matches
+                  (string-match (substring x 0 (min(length filedir) (length x))) filedir))
+                dirs))))
+
+(defun buffer-standard-include-p ()
+  "Returns true if the current buffer is contained within one of
+the directories in the INCLUDE environment variable."
+  (and (getenv "INCLUDE")
+       (file-in-directory-list-p buffer-file-name (split-string (getenv "INCLUDE") path-separator))))
+
+(add-to-list 'magic-fallback-mode-alist '(buffer-standard-include-p . c++-mode))
+#+end_src
 
 ** Language Server Protocol (LSP)
 This section configures several packages closely related to LSP.
@@ -699,6 +730,8 @@ In this section, we install several LSP servers for a variety of languages.
 )
 #+END_SRC
 
+** Magit
+This is a work in progress. I want to add Magit to the list of packages in Zemacs
 * LaTeX related
 ** AUCTeX
 *AUCTeX* is THE integrated environment for editing LaTeX and TeX files in Emacs (And several other TeX related files).

@@ -92,6 +92,7 @@ RunWithoutPrompt()
     sudo apt-get install -y neofetch;
     sudo snap install mc-installer;
     sudo snap install slack;
+    sudo apt-get install -y tree;
 }
 
 RunWithPrompt()
@@ -181,6 +182,11 @@ RunWithPrompt()
     if confirm "Do you want to install Slack?";
     then
 	sudo snap install slack;
+    fi
+
+    if confirm "Do you want to install tree?";
+    then
+	sudo apt-get install -y tree;
     fi
 }
 
