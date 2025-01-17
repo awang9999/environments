@@ -45,7 +45,6 @@
     };
   };
 
-  # TODO: Set your username
   home = {
     username = "zander";
     homeDirectory = "/home/zander";
@@ -53,7 +52,13 @@
 
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
-  home.packages = with pkgs; [ steam firefox ];
+  home.packages = with pkgs; [
+    firefox
+    discord
+    keepass
+    zoom-us
+  ];
+  
 
   # Enable home-manager and git
   programs.home-manager.enable = true;
