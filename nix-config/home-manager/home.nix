@@ -55,7 +55,7 @@
   home.packages = with pkgs; [
     firefox
     discord
-    keepass
+    keepassxc
     zoom-us
   ];
   
