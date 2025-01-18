@@ -89,7 +89,7 @@
   };
 
   # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_6_11;
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   # Set your hostname
   networking.hostName = "zanderver";
@@ -238,15 +238,21 @@
     dmidecode
     emacs
     gnomeExtensions.dash-to-dock
-    gnomeExtensions.wiggle
     gnomeExtensions.pano
+    gnomeExtensions.user-themes-x
+    gnomeExtensions.wiggle
+    gnomeExtensions.wireguard-vpn-extension
     gnome-tweaks
+    jq
     lshw
     lutris
+    openresolv
     python3
     vim
     vlc
     wget
+    wgnord
+    wireguard-tools
   ];
 
   programs.steam.enable = true;

@@ -57,6 +57,7 @@
     discord
     keepassxc
     zoom-us
+    inkscape-with-extensions
   ];
   
 
