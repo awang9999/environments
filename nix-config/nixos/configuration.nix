@@ -241,18 +241,16 @@
     gnomeExtensions.pano
     gnomeExtensions.user-themes-x
     gnomeExtensions.wiggle
-    gnomeExtensions.wireguard-vpn-extension
     gnome-tweaks
     jq
     lshw
     lutris
-    openresolv
     python3
+    sqlite
+    texliveFull
     vim
     vlc
     wget
-    wgnord
-    wireguard-tools
   ];
 
   programs.steam.enable = true;
