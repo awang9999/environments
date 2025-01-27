@@ -235,14 +235,23 @@
   environment.systemPackages = with pkgs; [
     busybox
     curl
+    cmake
     dmidecode
-    emacs
+    emacs30
+    gcc
     gnomeExtensions.dash-to-dock
     gnomeExtensions.pano
     gnomeExtensions.user-themes-x
     gnomeExtensions.wiggle
     gnome-tweaks
+    gnumake
+    jdk8
+    jdk17
+    jdk21
     jq
+    libgccjit
+    libtool
+    libvterm
     lshw
     lutris
     python3

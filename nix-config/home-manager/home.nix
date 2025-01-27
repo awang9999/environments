@@ -55,9 +55,10 @@
   home.packages = with pkgs; [
     firefox
     discord
-    keepassxc
-    zoom-us
     inkscape-with-extensions
+    keepassxc
+    prismlauncher
+    zoom-us
   ];
   
 
