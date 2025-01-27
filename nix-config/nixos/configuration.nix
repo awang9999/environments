@@ -267,6 +267,8 @@
     enable = true;
     binfmt = true;
   };
+  programs.zsh.enable = true;
+  users.users.zander.shell = pkgs.zsh;
 
 
   fonts.packages = with pkgs; [
