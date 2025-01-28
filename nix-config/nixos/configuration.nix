@@ -254,6 +254,7 @@
     libvterm
     lshw
     lutris
+    openssl
     python3
     sqlite
     texliveFull
@@ -269,6 +270,8 @@
   };
   programs.zsh.enable = true;
   users.users.zander.shell = pkgs.zsh;
+
+  virtualisation.docker.enable = true;
 
 
   fonts.packages = with pkgs; [
