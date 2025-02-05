@@ -57,10 +57,10 @@
     discord
     inkscape-with-extensions
     keepassxc
+    kiwix
     prismlauncher
     zoom-us
   ];
-  
 
   # Enable home-manager and git
   programs.home-manager.enable = true;

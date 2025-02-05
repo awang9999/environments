@@ -89,7 +89,7 @@
   };
 
   # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
+  boot.kernelPackages = pkgs.linuxPackages_6_13;
 
   # Set your hostname
   networking.hostName = "zanderver";
@@ -137,7 +137,7 @@
     # Enable this if you have graphical corruption issues or application crashes after waking
     # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead 
     # of just the bare essentials.
-    powerManagement.enable = false;
+    powerManagement.enable = true;
 
     # Fine-grained power management. Turns off GPU when not in use.
     # Experimental and only works on modern Nvidia GPUs (Turing or newer).
@@ -157,12 +157,28 @@
     nvidiaSettings = true;
 
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+      version = "570.86.16"; # use new 570 drivers
+      sha256_64bit = "sha256-RWPqS7ZUJH9JEAWlfHLGdqrNlavhaR1xMyzs8lJhy9U=";
+      openSha256 = "sha256-DuVNA63+pJ8IB7Tw2gM4HbwlOh1bcDg2AN2mbEU9VPE=";
+      settingsSha256 = "sha256-9rtqh64TyhDF5fFAYiWl3oDHzKJqyOW3abpcf2iNRT8=";
+      usePersistenced = false;
+    };
   };
 
   # Mount secondary NVME
   fileSystems."/run/media/zanderver_files" =
   { device = "/dev/disk/by-uuid/451a7243-ac0b-4e89-aa23-2c6c7a681fb0";
+    fsType = "ext4";
+  };
+  # Mount data media
+  fileSystems."/run/media/zander/Media" =
+  { device = "/dev/disk/by-uuid/7f29da17-a058-4b52-8f6a-489f1862c47c";
+    fsType = "ext4";
+  };
+  # Mount video media
+  fileSystems."/run/media/zander/Media2" =
+  { device = "/dev/disk/by-uuid/a82696f7-e072-4e96-bb79-b0e173d51833";
     fsType = "ext4";
   };
 
@@ -281,8 +297,14 @@
   programs.zsh.enable = true;
   users.users.zander.shell = pkgs.zsh;
 
-  virtualisation.docker.enable = true;
+  services.ollama = {
+    enable = true;
+    acceleration = "cuda";
+  };
 
+  services.open-webui.enable = true;
+
+  virtualisation.docker.enable = true;
 
   fonts.packages = with pkgs; [
     nerdfonts
