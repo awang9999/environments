@@ -265,6 +265,7 @@
     dmidecode
     emacs30
     gcc
+    gh
     gnomeExtensions.dash-to-dock
     gnomeExtensions.pano
     gnomeExtensions.user-themes-x

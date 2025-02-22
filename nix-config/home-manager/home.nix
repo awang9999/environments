@@ -59,6 +59,7 @@
     keepassxc
     kiwix
     prismlauncher
+    qbittorrent
     zoom-us
   ];
 
