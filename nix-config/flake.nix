@@ -12,9 +12,6 @@
     # Home manager
     home-manager.url = "github:nix-community/home-manager?shallow=1&ref=release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    # ComfyUI
-    nix-comfyui.url = "github:dyscorv/nix-comfyui";
   };
 
   outputs = {
