@@ -282,6 +282,7 @@
     lshw
     lutris
     openssl
+    pv
     python3
     sqlite
     texliveFull
